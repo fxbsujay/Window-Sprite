@@ -15,7 +15,6 @@ import atexit
 import threading
 import subprocess
 from psutil import Process as psutilProcess  # 内存监控
-from utils.config import Config
 from sys import platform
 from json import loads, dumps
 
@@ -101,7 +100,6 @@ class OcrAPI:
         cancelTimeout()
         print(f'初始化OCR成功，进程号为{self.ret.pid}')
 
-
     def run(self, imgPath: str) -> dict:
         """
         @Author       fxbsujay@gmail.com
@@ -147,7 +145,7 @@ class OcrAPI:
 
     def getRam(self) -> str:
         try:
-            return f'{int(self.psutilProcess.memory_info().rss/1048576)}MB'
+            return f'{int(self.psutilProcess.memory_info().rss / 1048576)}MB'
         except Exception as e:
             print(f'获取子进程内存失败：{e}')
             return '无法获取'

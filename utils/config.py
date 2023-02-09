@@ -9,14 +9,13 @@
 # @Description  : System configuration information
 --------------------
 """
+from rich.console import Console
 
 _ConfigDict = {
 
     # Debug模式
     'isDebug': {
         'default': False,
-        'isSave': True,
-        'isTK': True,
     },
     # 引擎路径
     'ocrToolPath': {
@@ -25,20 +24,14 @@ _ConfigDict = {
     # 启动参数字符串
     'argsStr': {
         'default': '',
-        'isSave': True,
-        'isTK': True,
     },
     # cls
     'isOcrAngle': {
         'default': False,
-        'isSave': True,
-        'isTK': True,
     },
     # 当前选择的压缩限制模式的name
     'ocrLimitModeName': {
         'default': '',
-        'isSave': True,
-        'isTK': True,
     },
     # 压缩限制模式
     'ocrLimitMode': {
@@ -46,26 +39,18 @@ _ConfigDict = {
             '长边压缩模式': 'max',
             '短边扩大模式': 'min',
         },
-        'isSave': False,
-        'isTK': False,
     },
     # 压缩阈值
     'ocrLimitSize': {
         'default': 960,
-        'isSave': True,
-        'isTK': True,
     },
     # CPU线程数
     'ocrCpuThreads': {
         'default': 10,
-        'isSave': True,
-        'isTK': True,
     },
     # 启用mkldnn加速
     'isOcrMkldnn': {
         'default': True,
-        'isSave': True,
-        'isTK': True,
     },
     'ocrConfig': {  # 配置文件信息
         'default': {  # 配置文件信息
@@ -73,22 +58,21 @@ _ConfigDict = {
                 'path': 'PaddleOCR_json_config_ch.txt'
             }
         },
-        'isSave': True,
-        'isTK': False,
     },
     # 当前选择的配置文件的name
     'ocrConfigName': {
         'default': '简体中文',
-        'isSave': True,
-        'isTK': True,
     },
 
     # 进程运行状态字符串
     'ocrProcessStatus': {
         'default': '未启动',
-        'isSave': False,
-        'isTK': True,
     },
+
+    # 屏幕截图保存的位置
+    'screenshotSavePath': {
+        'default': 'doc/image/screen.png',
+    }
 
 }
 
@@ -113,3 +97,4 @@ class ConfigModule:
 
 Config = ConfigModule()  # 设置模块 单例
 
+console = Console()

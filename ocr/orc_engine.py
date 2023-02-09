@@ -9,6 +9,7 @@
 # @Description  : Image OCR Engine
 --------------------
 """
+
 import os
 from enum import Enum
 from operator import eq

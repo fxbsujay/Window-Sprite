@@ -10,33 +10,17 @@
 --------------------
 """
 from typing import List
-from rich.console import Console
 from rich.table import Table
-from PIL import Image
-from io import BytesIO
+from utils.config import Config
+from ocr.orc_engine import OCRe
+from utils.config import console
+from utils.tools import mouseClick, copy_image_to_clipboard, application_screenshot_tool
 import pyperclip
 import xlrd
 import json
 import pyautogui
 import time
-import win32clipboard
 import os
-
-
-# console = Console(file=open("log.txt", "wt"))
-console = Console()
-
-
-def copy_image_to_clipboard(img_path: str):
-    image = Image.open(img_path)
-    output = BytesIO()
-    image.save(output, 'BMP')
-    data = output.getvalue()[14:]
-    output.close()
-    win32clipboard.OpenClipboard()
-    win32clipboard.EmptyClipboard()
-    win32clipboard.SetClipboardData(win32clipboard.CF_DIB, data)
-    win32clipboard.CloseClipboard()
 
 
 def print_json_table(func):
@@ -104,6 +88,7 @@ def inspect_json(jsonStr: str) -> List[Script]:
 @print_json_table
 def inspect_sheet(filename: str) -> List[Script]:
     """
+        检测脚本并返回
         :param filename:  脚本文件路径
         :return: 脚本参数数组
     """
@@ -138,43 +123,15 @@ def inspect_sheet(filename: str) -> List[Script]:
     return jsonData
 
 
-def mouseClick(clickTimes, lOrR, img, reTry) -> None:
-    """
-    :param clickTimes: 点击次数
-    :param lOrR:       鼠标左键还是右键
-    :param img:        匹配相同的图片
-    :param reTry:      重复次数
-    """
-    console.print("鼠标点击事件：鼠标键位=", lOrR, "img=", img, "点击次数=", clickTimes, "重复次数=", reTry,  style="bold red")
-    if reTry == 1:
-        while True:
-            location = pyautogui.locateCenterOnScreen(img, confidence=0.8)
-            if location is not None:
-                pyautogui.click(location.x, location.y, clicks=clickTimes, interval=0.2, duration=0.2, button=lOrR)
-                break
-            console.print("未找到匹配图片,0.1秒后重试")
-            time.sleep(0.1)
-    elif reTry == -1:
-        while True:
-            location = pyautogui.locateCenterOnScreen(img, confidence=0.9)
-            if location is not None:
-                pyautogui.click(location.x, location.y, clicks=clickTimes, interval=0.2, duration=0.2, button=lOrR)
-            time.sleep(0.1)
-    elif reTry > 1:
-        i = 1
-        while i < reTry + 1:
-            location = pyautogui.locateCenterOnScreen(img, confidence=0.9)
-            if location is not None:
-                pyautogui.click(location.x, location.y, clicks=clickTimes, interval=0.2, duration=0.2, button=lOrR)
-                i += 1
-            time.sleep(0.1)
-
-
 class ExecuteScript:
 
     def __init__(self, loop: bool = True, filename: str = "doc//script.xls"):
         self._loop = loop
         self._filename = filename
+
+        # 启动引擎
+        OCRe.start()
+
 
     def execute_sheet_script(self) -> None:
         scriptData: List[Script] = inspect_sheet(self._filename)
@@ -215,7 +172,14 @@ class ExecuteScript:
                 pyautogui.hotkey('ctrl', 'v')
                 time.sleep(0.5)
             elif script.type == 5.0:
-                time.sleep(int(script.value))
+                waitTime = int(script.value)
+                for i in range(waitTime):
+                    application_screenshot_tool("企业微信")
+                    text = OCRe.run(Config.get("screenshotSavePath"))
+                    pyperclip.copy("你说的啥")
+                    pyautogui.hotkey('ctrl', 'v')
+                    time.sleep(1)
+
             elif script.type == 6.0:
                 pyautogui.scroll(int(script.value))
 
