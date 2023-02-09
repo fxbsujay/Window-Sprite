@@ -10,6 +10,7 @@ pip install pillow          图片操作库
 pip install rich            打印，日志输出  
 pip install pywin32         Windows api  
 pip install pytesseract     图像识别库  
+pip install psutil          系统监控
 
 pytesseract 配置 pytesseract.py 28中  
 安装 doc文件夹内的 tesseract  
