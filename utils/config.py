@@ -71,7 +71,16 @@ _ConfigDict = {
 
     # 屏幕截图保存的位置
     'screenshotSavePath': {
-        'default': 'doc/image/screen.png',
+        'default': 'E:\\fxbsuajy@gmail.com\\Window-Sprite\\doc\\image\\screen.png',
+    },
+
+    # 过滤词组文件
+    'banPhraseFilePath': {
+        'default': "E:\\fxbsuajy@gmail.com\\Window-Sprite\\doc\\ban_phrase.txt"
+    },
+    # 窗体位置
+    'WindowRect': {
+        'default': None
     }
 
 }
@@ -86,10 +95,8 @@ class ConfigModule:
             value = _ConfigDict[key]
             self.__optDict[key] = value['default']
 
-
     def update(self, key, value):
         self.__optDict[key] = value
-
 
     def get(self, key):
         return self.__optDict[key]

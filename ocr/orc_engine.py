@@ -92,7 +92,7 @@ class OcrEngine:
 
         self.__ocrInfo = info
         try:
-            print('启动引擎，参数：{}',info)
+            print('启动引擎，参数：{}', info)
             self.__setEngFlag(EngFlag.initializing)
             # 启动引擎
             self.ocr = OcrAPI(*self.__ocrInfo)
@@ -124,12 +124,14 @@ class OcrEngine:
         self.__setEngFlag(EngFlag.none)
         self.__initVar()
 
-    def run(self, path: str) -> dict:
-        """执行单张图片识别，输入路径，返回字典"""
+    def run(self, path: str) -> list:
+        """执行单张图片识别，输入路径，返回内容数组"""
+
+        result = []
 
         if not self.ocr:
             self.__setEngFlag(EngFlag.none)  # 通知关闭
-            return {'code': 404, 'data': f'引擎未在运行'}
+            return result
 
         self.__setEngFlag(EngFlag.running)  # 通知工作
         data = self.ocr.run(path)
@@ -137,7 +139,10 @@ class OcrEngine:
         if self.engFlag == EngFlag.running:
             self.__setEngFlag(EngFlag.waiting)  # 通知待命
 
-        return data
+        if data['code'] == 100 and data['data']:
+            result = [each['text'] for each in data['data']]
+
+        return result
 
 
 OCRe = OcrEngine()
@@ -146,9 +151,10 @@ OCRe = OcrEngine()
 
 
 if __name__ == '__main__':
-    orc = OCRe
-    orc.start()
-    text = orc.run("E:\\fxbsuajy@gmail.com\\Window-Sprite\\doc\\image\\screen.png")
+    OCRe.start()
+    text = OCRe.run(Config.get("screenshotSavePath"))
     print(text)
+    OCRe.stop()
+
 
 

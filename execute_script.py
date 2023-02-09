@@ -9,12 +9,11 @@
 # @Description  : Automatic reply message robot execution script
 --------------------
 """
+
 from typing import List
 from rich.table import Table
-from utils.config import Config
 from ocr.orc_engine import OCRe
-from utils.config import console
-from utils.tools import mouseClick, copy_image_to_clipboard, application_screenshot_tool
+from utils.tools import *
 import pyperclip
 import xlrd
 import json
@@ -115,7 +114,7 @@ def inspect_sheet(filename: str) -> List[Script]:
                 if scriptValue.ctype == 0:
                     raise ValueError('第', index + 1, "行第二列数据格式不正确")
             elif scriptType.value == 5.0 or scriptType.value == 6.0:
-                if scriptValue.ctype != 2:
+                if scriptValue.ctype != 1:
                     raise ValueError('第', index + 1, "行第二列数据格式不正确")
             jsonData.append(Script(scriptType.value, scriptValue.value, sheet.row(index)[2].value))
         index += 1
@@ -125,34 +124,46 @@ def inspect_sheet(filename: str) -> List[Script]:
 
 class ExecuteScript:
 
-    def __init__(self, loop: bool = True, filename: str = "doc//script.xls"):
+    def __init__(self, loop: bool = True, filename: str = "doc//script.xls", isBanPhrases: bool = True):
+        self._phrases = []
         self._loop = loop
         self._filename = filename
 
         # 启动引擎
         OCRe.start()
 
+        if isBanPhrases:
+            self.filter_phrases()
+
+
+    def filter_phrases(self):
+        path = Config.get("banPhraseFilePath")
+
+        if path:
+            content = read_file(path)
+            if content:
+                self._phrases = content.split(',')
 
     def execute_sheet_script(self) -> None:
         scriptData: List[Script] = inspect_sheet(self._filename)
         if self._loop:
             while True:
-                self.execute_script(scriptData)
+                self.execute_script(scriptData, self._phrases)
         else:
-            self.execute_script(scriptData)
+            self.execute_script(scriptData, self._phrases)
 
     def execute_json_script(self, jsonData: str = "") -> None:
         scriptData: List[Script] = inspect_json(jsonData)
         if self._loop:
             while True:
-                self.execute_script(scriptData)
+                self.execute_script(scriptData, self._phrases)
         else:
-            self.execute_script(scriptData)
-
+            self.execute_script(scriptData, self._phrases)
 
     @staticmethod
-    def execute_script(dataList: List[Script]) -> None:
+    def execute_script(dataList: List[Script], banPhrases: []) -> None:
         console.rule("start execute script")
+        start = time.time()
         for script in dataList:
             if script.type == 1.0 or script.type == 2.0:
                 reset = 1
@@ -170,18 +181,23 @@ class ExecuteScript:
                 else:
                     pyperclip.copy(script.value)
                 pyautogui.hotkey('ctrl', 'v')
-                time.sleep(0.5)
             elif script.type == 5.0:
-                waitTime = int(script.value)
-                for i in range(waitTime):
-                    application_screenshot_tool("企业微信")
-                    text = OCRe.run(Config.get("screenshotSavePath"))
-                    pyperclip.copy("你说的啥")
-                    pyautogui.hotkey('ctrl', 'v')
-                    time.sleep(1)
+
+                screenshotSavePath = Config.get("screenshotSavePath")
+                application_screenshot_tool(script.value, isSaveWindowRect=True)
+                text = OCRe.run(screenshotSavePath)
+
+                entries = [item for item in list(set(text)) if item not in banPhrases and is_zh_cn(item)]
+
+                pyperclip.copy("您好，我是机器人 MOSS")
+                pyautogui.hotkey('ctrl', 'v')
+                os.remove(screenshotSavePath)
+
 
             elif script.type == 6.0:
                 pyautogui.scroll(int(script.value))
+        end = time.time()
+        print('程序运行时间为: %s Seconds' % (end - start))
 
 
 if __name__ == '__main__':
