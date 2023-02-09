@@ -156,23 +156,3 @@ class OcrAPI:
         self.stop()
         # 移除退出处理
         atexit.unregister(self.stop)
-
-
-if __name__ == '__main__':
-
-    ang = ' -cls=1 -use_angle_cls=1' if Config.get('isOcrAngle') else ''
-    limit = f" -limit_type={Config.get('ocrLimitMode').get(Config.get('ocrLimitModeName'), 'min')} -limit_side_len={Config.get('ocrLimitSize')}"
-    staticArgs = f"{ang}{limit}\
-    -cpu_threads={Config.get('ocrCpuThreads')}\
-    -enable_mkldnn={Config.get('isOcrMkldnn')}\
-    {Config.get('argsStr')}"
-
-    info = (
-        Config.get("ocrToolPath"),  # 识别器路径
-        Config.get('ocrConfig')[Config.get('ocrConfigName')]['path'],  # 配置文件路径
-        staticArgs,  # 启动参数
-    )
-
-    orc = OcrAPI(*info)
-    text = orc.run("E:\\fxbsuajy@gmail.com\\Window-Sprite\\doc\\image\\screen.png")
-    print(text)

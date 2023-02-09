@@ -12,6 +12,12 @@
 
 _ConfigDict = {
 
+    # Debug模式
+    'isDebug': {
+        'default': False,
+        'isSave': True,
+        'isTK': True,
+    },
     # 引擎路径
     'ocrToolPath': {
         'default': 'E:\\fxbsuajy@gmail.com\\Window-Sprite\\PaddleOCR-json\\PaddleOCR_json.exe',
@@ -22,7 +28,7 @@ _ConfigDict = {
         'isSave': True,
         'isTK': True,
     },
-    # T时启用cls
+    # cls
     'isOcrAngle': {
         'default': False,
         'isSave': True,
@@ -70,9 +76,17 @@ _ConfigDict = {
         'isSave': True,
         'isTK': False,
     },
-    'ocrConfigName': {  # 当前选择的配置文件的name
+    # 当前选择的配置文件的name
+    'ocrConfigName': {
         'default': '简体中文',
         'isSave': True,
+        'isTK': True,
+    },
+
+    # 进程运行状态字符串
+    'ocrProcessStatus': {
+        'default': '未启动',
+        'isSave': False,
         'isTK': True,
     },
 
@@ -88,11 +102,14 @@ class ConfigModule:
             value = _ConfigDict[key]
             self.__optDict[key] = value['default']
 
+
     def update(self, key, value):
         self.__optDict[key] = value
+
 
     def get(self, key):
         return self.__optDict[key]
 
 
 Config = ConfigModule()  # 设置模块 单例
+
