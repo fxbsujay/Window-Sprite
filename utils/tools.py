@@ -75,7 +75,7 @@ def copy_image_to_clipboard(path: str):
     win32clipboard.CloseClipboard()
 
 
-def application_screenshot_tool(name: str = "", path: str = Config.get("screenshotSavePath"), isSaveWindowRect: bool = False) -> None:
+def application_screenshot_tool(name: str, path: str, isSaveWindowRect: bool = False) -> None:
     """
     窗口截图工具
     :name 需要截图的窗口应用程序名称
@@ -93,7 +93,7 @@ def application_screenshot_tool(name: str = "", path: str = Config.get("screensh
     x1, y1, x2, y2 = win32gui.GetWindowRect(handle)
 
     png = ImageGrab.grab((x1, y1, x2, y2))
-    png.save(path)
+    png.save(get_join_pardir(path))
 
     if isSaveWindowRect:
         Config.update('WindowRect', (x1, y1, x2, y2))
@@ -114,12 +114,16 @@ def is_zh_cn(text: str):
         return False
 
 
+def get_join_pardir(path: str):
+    return os.path.join(os.path.abspath('..'), path)
+
+
 def read_file(path):
 
     if not os.path.isfile(path):
         raise Exception("文件地址错误 {}", path)
 
-    file = open(path, 'r',encoding='utf-8')
+    file = open(path, 'r', encoding='utf-8')
     try:
         return file.read()  # 结果为str类型
     finally:

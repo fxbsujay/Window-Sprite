@@ -13,6 +13,7 @@
 from typing import List
 from rich.table import Table
 from ocr.orc_engine import OCRe
+from utils.enums import EngFlag, ScriptType
 from utils.tools import *
 import pyperclip
 import xlrd
@@ -70,11 +71,12 @@ class Script:
 
 
 @print_json_table
-def inspect_json(jsonStr: str) -> List[Script]:
+def inspect_json(filename: str) -> List[Script]:
     """
-    :param jsonStr: json脚本
+    :param filename: json脚本文件
         For Example : [ { "type": 1, "value": "flag.png", "reset": 0} ]
     """
+    jsonStr = read_file(filename)
     jsonData: List[Script] = []
     if len(jsonStr) > 0:
         console.print_json(jsonStr)
@@ -124,83 +126,82 @@ def inspect_sheet(filename: str) -> List[Script]:
 
 class ExecuteScript:
 
-    def __init__(self, loop: bool = True, filename: str = "doc//script.xls", isBanPhrases: bool = True):
+    def __init__(self, scriptType: ScriptType = ScriptType.json, loop: bool = True, isBanPhrases: bool = True):
         self._phrases = []
         self._loop = loop
-        self._filename = filename
+
+        if Config.get('taskScriptType'):
+            scriptType = Config.get('taskScriptType')
+        self._script = scriptType
 
         # 启动引擎
-        OCRe.start()
+        if Config.get('ocrProcessStatus') == EngFlag.none:
+            OCRe.start()
 
         if isBanPhrases:
             self.filter_phrases()
 
-
     def filter_phrases(self):
-        path = Config.get("banPhraseFilePath")
-
+        path = get_join_pardir(Config.get("banPhraseFilePath"))
         if path:
             content = read_file(path)
             if content:
                 self._phrases = content.split(',')
 
-    def execute_sheet_script(self) -> None:
-        scriptData: List[Script] = inspect_sheet(self._filename)
-        if self._loop:
+    def start(self) -> None:
+        path = Config.get('taskScriptPath')[self._script.value]['path']
+        filename = get_join_pardir(path)
+
+        scriptData: List[Script] = []
+
+        if self._script == ScriptType.excel:
+            scriptData = inspect_sheet(filename)
+        elif self._script == ScriptType.json:
+            scriptData = inspect_json(filename)
+
+        if scriptData and self._loop:
             while True:
                 self.execute_script(scriptData, self._phrases)
         else:
             self.execute_script(scriptData, self._phrases)
 
-    def execute_json_script(self, jsonData: str = "") -> None:
-        scriptData: List[Script] = inspect_json(jsonData)
-        if self._loop:
-            while True:
-                self.execute_script(scriptData, self._phrases)
-        else:
-            self.execute_script(scriptData, self._phrases)
 
     @staticmethod
     def execute_script(dataList: List[Script], banPhrases: []) -> None:
         console.rule("start execute script")
-        start = time.time()
         for script in dataList:
-            if script.type == 1.0 or script.type == 2.0:
+            if script.type == 1 or script.type == 2:
                 reset = 1
                 if len(str(script.reset)) > 0:
                     reset = script.reset
                 mouseClick(int(script.type), "left", script.value, reset)
-            elif script.type == 3.0:
+            elif script.type == 3:
                 reset = 1
                 if len(str(script.reset)) > 0:
                     reset = script.reset
                 mouseClick(1, "right", script.value, reset)
-            elif script.type == 4.0:
+            elif script.type == 4:
                 if os.path.isfile(script.value):
                     copy_image_to_clipboard(script.value)
                 else:
                     pyperclip.copy(script.value)
                 pyautogui.hotkey('ctrl', 'v')
-            elif script.type == 5.0:
-
-                screenshotSavePath = Config.get("screenshotSavePath")
-                application_screenshot_tool(script.value, isSaveWindowRect=True)
+            elif script.type == 5:
+                screenshotSavePath = get_join_pardir(Config.get("screenshotSavePath"))
+                application_screenshot_tool(script.value, screenshotSavePath, isSaveWindowRect=True)
                 text = OCRe.run(screenshotSavePath)
-
+                console.print(text)
                 entries = [item for item in list(set(text)) if item not in banPhrases and is_zh_cn(item)]
 
                 pyperclip.copy("您好，我是机器人 MOSS")
                 pyautogui.hotkey('ctrl', 'v')
-                os.remove(screenshotSavePath)
 
-
-            elif script.type == 6.0:
+            elif script.type == 6:
                 pyautogui.scroll(int(script.value))
-        end = time.time()
-        print('程序运行时间为: %s Seconds' % (end - start))
+
 
 
 if __name__ == '__main__':
     # inspect_json("[ { \"type\": 1, \"value\": \"flag.png\", \"reset\": 0} ]")
     execute = ExecuteScript()
-    execute.execute_sheet_script()
+    execute.start()

@@ -10,6 +10,7 @@
 --------------------
 """
 from rich.console import Console
+from utils.enums import EngFlag, ScriptType
 
 _ConfigDict = {
 
@@ -66,17 +67,32 @@ _ConfigDict = {
 
     # 进程运行状态字符串
     'ocrProcessStatus': {
-        'default': '未启动',
+        'default': EngFlag.none,
     },
 
     # 屏幕截图保存的位置
     'screenshotSavePath': {
-        'default': 'E:\\fxbsuajy@gmail.com\\Window-Sprite\\doc\\image\\screen.png',
+        'default': 'doc\\screen.png',
+    },
+    # 脚本类型
+    'taskScriptType': {
+        'default': ScriptType.json,
+    },
+    'taskScriptPath': {
+        'default': {
+            'json': {
+                'path': 'doc\\script.json'
+            },
+            'excel': {
+                'path': 'doc\\script.xls'
+            }
+        }
+
     },
 
     # 过滤词组文件
     'banPhraseFilePath': {
-        'default': "E:\\fxbsuajy@gmail.com\\Window-Sprite\\doc\\ban_phrase.txt"
+        'default': "doc\\ban_phrase.txt"
     },
     # 窗体位置
     'WindowRect': {
@@ -104,4 +120,4 @@ class ConfigModule:
 
 Config = ConfigModule()  # 设置模块 单例
 
-console = Console()
+console = Console(file=open("log.txt", "wt", encoding='utf-8'))

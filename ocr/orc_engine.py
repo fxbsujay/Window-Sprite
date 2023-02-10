@@ -11,18 +11,11 @@
 """
 
 import os
-from enum import Enum
 from operator import eq
 from ocr.api_image_ocr import OcrAPI
 from utils.config import Config
-
-
-class EngFlag(Enum):
-    """引擎运行状态标志"""
-    none = 0  # 不在运行
-    initializing = 1  # 正在启动
-    waiting = 2  # 待命
-    running = 3  # 工作中
+from utils.enums import EngFlag
+from utils.config import console
 
 
 class OcrEngine:
@@ -50,14 +43,8 @@ class OcrEngine:
             if engFlag == EngFlag.waiting:
                 self.__ramTips = f'（内存：{self.ocr.getRam()}）'
 
-        msg = {
-            EngFlag.none:  '已关闭',
-            EngFlag.initializing:  '正在启动',
-            EngFlag.waiting:  f'待命{self.__ramTips}',
-            EngFlag.running:  f'工作{self.__ramTips}',
-        }.get(engFlag, f'未知（{engFlag}）')
 
-        Config.update('ocrProcessStatus', msg)
+        Config.update('ocrProcessStatus', engFlag)
 
 
     def start(self):
@@ -92,14 +79,14 @@ class OcrEngine:
 
         self.__ocrInfo = info
         try:
-            print('启动引擎，参数：{}', info)
+            console.print('启动引擎，参数：{}', info)
             self.__setEngFlag(EngFlag.initializing)
             # 启动引擎
             self.ocr = OcrAPI(*self.__ocrInfo)
             # 检查启动引擎这段时间里，引擎有没有被叫停
             if not self.engFlag == EngFlag.initializing:
                 # 状态被改变过了
-                print(f'初始化后，引擎被叫停！{self.engFlag}')
+                console.print(f'初始化后，引擎被叫停！{self.engFlag}')
                 self.stop()
                 return
             # 通知待命
@@ -114,7 +101,7 @@ class OcrEngine:
 
         if not self.engFlag == EngFlag.none and not isRestart:
             # TODO @CompilationTime 11:13 2023/02/09  --- 停止任务 ---
-            print(f'引擎stop，停止任务！')
+            console.print(f'引擎stop，停止任务！')
 
         if hasattr(self.ocr, 'stop'):
             self.ocr.stop()
@@ -141,7 +128,6 @@ class OcrEngine:
 
         if data['code'] == 100 and data['data']:
             result = [each['text'] for each in data['data']]
-
         return result
 
 
@@ -152,8 +138,8 @@ OCRe = OcrEngine()
 
 if __name__ == '__main__':
     OCRe.start()
-    text = OCRe.run(Config.get("screenshotSavePath"))
-    print(text)
+    text = OCRe.run("E:\\fxbsuajy@gmail.com\\Window-Sprite\\doc\\screen.png")
+    console.print(text)
     OCRe.stop()
 
 
