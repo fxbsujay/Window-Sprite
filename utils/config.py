@@ -9,19 +9,11 @@
 # @Description  : System configuration information
 --------------------
 """
+
 from rich.console import Console
 from utils.enums import EngFlag, ScriptType
 
 _ConfigDict = {
-
-    # Debug模式
-    'isDebug': {
-        'default': False,
-    },
-    # 引擎路径
-    'ocrToolPath': {
-        'default': 'E:\\fxbsuajy@gmail.com\\Window-Sprite\\PaddleOCR-json\\PaddleOCR_json.exe',
-    },
     # 启动参数字符串
     'argsStr': {
         'default': '',
@@ -53,23 +45,10 @@ _ConfigDict = {
     'isOcrMkldnn': {
         'default': True,
     },
-    'ocrConfig': {  # 配置文件信息
-        'default': {  # 配置文件信息
-            '简体中文': {
-                'path': 'PaddleOCR_json_config_ch.txt'
-            }
-        },
-    },
-    # 当前选择的配置文件的name
-    'ocrConfigName': {
-        'default': '简体中文',
-    },
-
     # 进程运行状态字符串
     'ocrProcessStatus': {
         'default': EngFlag.none,
     },
-
     # 屏幕截图保存的位置
     'screenshotSavePath': {
         'default': 'doc\\screen.png',
@@ -89,7 +68,6 @@ _ConfigDict = {
         }
 
     },
-
     # 过滤词组文件
     'banPhraseFilePath': {
         'default': "doc\\ban_phrase.txt"

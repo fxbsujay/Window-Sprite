@@ -6,7 +6,7 @@
 # @Author       : fxbsujay@gmail.com
 # @Time         : 11:12 2023/2/07
 # @Version      : 1.0.0
-# @Description  : Automatic reply message robot execution script
+# @Description  : 自动化脚本
 --------------------
 """
 
@@ -116,7 +116,7 @@ def inspect_sheet(filename: str) -> List[Script]:
                 if scriptValue.ctype == 0:
                     raise ValueError('第', index + 1, "行第二列数据格式不正确")
             elif scriptType.value == 5.0 or scriptType.value == 6.0:
-                if scriptValue.ctype != 1:
+                if scriptValue.ctype != 2:
                     raise ValueError('第', index + 1, "行第二列数据格式不正确")
             jsonData.append(Script(scriptType.value, scriptValue.value, sheet.row(index)[2].value))
         index += 1
@@ -187,17 +187,9 @@ class ExecuteScript:
                     pyperclip.copy(script.value)
                 pyautogui.hotkey('ctrl', 'v')
             elif script.type == 5:
-                screenshotSavePath = get_join_pardir(Config.get("screenshotSavePath"))
-                application_screenshot_tool(script.value, screenshotSavePath, isSaveWindowRect=True)
-                text = OCRe.run(screenshotSavePath)
-                console.print(text)
-                entries = [item for item in list(set(text)) if item not in banPhrases and is_zh_cn(item)]
-
-                pyperclip.copy("您好，我是机器人 MOSS")
-                pyautogui.hotkey('ctrl', 'v')
-
-            elif script.type == 6:
                 pyautogui.scroll(int(script.value))
+            elif script.type == 6:
+                time.sleep(int(script.value))
 
 
 

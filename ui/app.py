@@ -1,39 +1,52 @@
 import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
 from tkinter.scrolledtext import ScrolledText
-from utils.config import console
 from threading import Thread
+from utils.config import Config
+from utils.enums import PurposeType, EngFlag
 import time
 
 
 class FileSearchEngine(ttk.Frame):
 
-    def __init__(self, master, startAndEndFunc):
+    def __init__(self, master, statusChangeHandle=None):
         super().__init__(master, padding=15)
         self.pack(fill=BOTH, expand=YES)
 
-        self.option_lf = ttk.Labelframe(self, text="操作", padding=15)
-        self.option_lf.pack(fill=X, expand=YES, anchor=N)
+        self._statusChangeHandle = statusChangeHandle
+        self._status_var = ttk.StringVar(value='启动')
 
-
-        self._startAndEndFunc = startAndEndFunc
+        self._option_lf = ttk.Labelframe(self, text="操作", padding=15)
+        self._option_lf.pack(fill=X, expand=YES, anchor=N)
 
         self.create_operation_row()
         self.create_log_row()
 
-
-
-
     def create_operation_row(self):
-        path_row = ttk.Frame(self.option_lf)
+        path_row = ttk.Frame(self._option_lf)
         path_row.pack(fill=X, expand=YES)
-        browse_btn = ttk.Button(
+
+        contains_opt = ttk.Radiobutton(
             master=path_row,
-            text="启动",
-            command=self._startAndEndFunc,
+            text=PurposeType.daily.value,
+            value=PurposeType.daily
+        )
+        contains_opt.pack(side=LEFT)
+
+        startswith_opt = ttk.Radiobutton(
+            master=path_row,
+            text=PurposeType.weChat.value,
+            value=PurposeType.weChat
+        )
+        startswith_opt.pack(side=LEFT, padx=15)
+
+        status_btn = ttk.Button(
+            master=path_row,
+            textvariable=self._status_var,
+            command=self.status_bnt_click_handle,
             width=8
         )
-        browse_btn.pack(side=LEFT, padx=5)
+        status_btn.pack(side=LEFT, padx=5)
 
     def create_log_row(self):
         style = ttk.Style()
@@ -47,8 +60,8 @@ class FileSearchEngine(ttk.Frame):
         default_txt = "Click the browse button to open a new text file."
         self.textbox.insert(END, default_txt)
 
-
         t = Thread(target=self.open_log)
+        t.daemon = True
         t.start()
 
 
@@ -60,14 +73,29 @@ class FileSearchEngine(ttk.Frame):
                 time.sleep(1)
                 f.close()
 
+    def status_bnt_click_handle(self):
 
-def aafr():
-    pass
+        if self._statusChangeHandle:
+            self._statusChangeHandle()
+
+        status_describe = {
+            EngFlag.none: '启动',
+            EngFlag.initializing: '正在启动',
+            EngFlag.waiting: '停止',
+            EngFlag.running: '停止'
+        }
+
+        status = Config.get('ocrProcessStatus')
+        self._status_var.set(status_describe[status])
+
+
+def start():
+    Config.update('ocrProcessStatus', EngFlag.waiting)
 
 
 if __name__ == '__main__':
-
-
     app = ttk.Window("File Search Engine")
-    FileSearchEngine(app, None)
+
+    engine = FileSearchEngine(app, start)
+
     app.mainloop()

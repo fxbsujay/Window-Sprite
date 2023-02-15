@@ -16,6 +16,7 @@ from ocr.api_image_ocr import OcrAPI
 from utils.config import Config
 from utils.enums import EngFlag
 from utils.config import console
+from utils.tools import get_join_pardir
 
 
 class OcrEngine:
@@ -38,7 +39,7 @@ class OcrEngine:
         """更新引擎状态"""
 
         self.engFlag = engFlag
-        if self.ocr and Config.get('isDebug'):
+        if self.ocr:
             # 刷新内存占用
             if engFlag == EngFlag.waiting:
                 self.__ramTips = f'（内存：{self.ocr.getRam()}）'
@@ -52,7 +53,7 @@ class OcrEngine:
         if self.engFlag == EngFlag.initializing:  # 正在初始化中，严禁重复初始化
             return
 
-        ocrToolPath = Config.get('ocrToolPath')
+        ocrToolPath = get_join_pardir('PaddleOCR-json\\PaddleOCR_json.exe')
         if not os.path.isfile(ocrToolPath):
             raise Exception(
                 f'未在以下路径找到引擎组件\n【{ocrToolPath}】\n\n请将引擎组件【PaddleOCR-json】文件夹放置于指定路径！')
@@ -66,8 +67,8 @@ class OcrEngine:
             {Config.get('argsStr')}"
 
         info = (
-            Config.get("ocrToolPath"),
-            Config.get('ocrConfig')[Config.get('ocrConfigName')]['path'],
+            ocrToolPath,
+            'PaddleOCR_json_config_ch.txt',
             staticArgs
         )
 

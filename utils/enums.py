@@ -6,7 +6,7 @@
 # @Author       : fxbsujay@gmail.com
 # @Time         : 10:44 2023/2/09
 # @Version      : 1.0.0
-# @Description  : Image OCR Engine
+# @Description  : 枚举
 --------------------
 """
 
@@ -25,3 +25,8 @@ class EngFlag(Enum):
     waiting = 2  # 待命
     running = 3  # 工作中
 
+
+class PurposeType(Enum):
+    """App主要用途"""
+    daily = '日常使用'  # 日常使用
+    weChat = '微信客服'  # 微信客服

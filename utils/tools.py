@@ -75,7 +75,7 @@ def copy_image_to_clipboard(path: str):
     win32clipboard.CloseClipboard()
 
 
-def application_screenshot_tool(name: str, path: str, isSaveWindowRect: bool = False) -> None:
+def application_screenshot_tool(name: str, path: str) -> None:
     """
     窗口截图工具
     :name 需要截图的窗口应用程序名称
@@ -83,20 +83,35 @@ def application_screenshot_tool(name: str, path: str, isSaveWindowRect: bool = F
     :isSaveWindowRect 是否需要将截图的窗口坐标保存下来
     """
 
-    handle = win32gui.FindWindow(0, name)
-    win32gui.SendMessage(handle, win32con.WM_SYSCOMMAND, win32con.SC_RESTORE, 0)
-    win32gui.SetForegroundWindow(handle)
+    handle = window_top(name, True)
 
     if handle == 0:
         return
 
-    x1, y1, x2, y2 = win32gui.GetWindowRect(handle)
-
-    png = ImageGrab.grab((x1, y1, x2, y2))
+    png = ImageGrab.grab(Config.update('WindowRect'))
     png.save(get_join_pardir(path))
 
+
+def window_top(name: str, isSaveWindowRect: bool = False):
+    """
+        窗口置顶
+        :name:  窗口名称
+        :return 窗口句柄
+    """
+    def callback(hwnd, extra):
+        if win32gui.IsWindowVisible(hwnd):
+            if win32gui.GetWindowText(hwnd) == name:
+                extra[f"{name}"] = hwnd
+                win32gui.SendMessage(hwnd, win32con.WM_SYSCOMMAND, win32con.SC_RESTORE, 0)
+                win32gui.SetForegroundWindow(hwnd)
+
+    extra = {}
+    win32gui.EnumWindows(callback, extra)
+
     if isSaveWindowRect:
-        Config.update('WindowRect', (x1, y1, x2, y2))
+        Config.update('WindowRect', win32gui.GetWindowRect(extra[name]))
+
+    return extra[name]
 
 
 def is_zh_cn(text: str):
@@ -119,7 +134,6 @@ def get_join_pardir(path: str):
 
 
 def read_file(path):
-
     if not os.path.isfile(path):
         raise Exception("文件地址错误 {}", path)
 
@@ -128,3 +142,22 @@ def read_file(path):
         return file.read()  # 结果为str类型
     finally:
         file.close()
+
+
+def we_chat_record_screenshot():
+    """
+        微信聊天记录截屏
+    """
+    handle = window_top('微信', True)
+    if handle == 0:
+        return
+
+    x1, y1, x2, y2 = Config.get('WindowRect')
+    locationLeft = pyautogui.locateCenterOnScreen(get_join_pardir("doc\\setting\\we_chat_left_bottom.png"), confidence=0.8, region=(x1, y1, x2, y2))
+    locationRight = pyautogui.locateCenterOnScreen(get_join_pardir("doc\\setting\\we_chat_right_bottom.png"), confidence=0.8, region=(x1, y1, x2, y2))
+    png = ImageGrab.grab((locationLeft.x, y1 + 60, locationRight.x, locationLeft.y - 20))
+    png.save(get_join_pardir(Config.get("screenshotSavePath")))
+
+
+if __name__ == '__main__':
+    pass
