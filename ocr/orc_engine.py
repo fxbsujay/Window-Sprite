@@ -18,7 +18,6 @@ from utils.enums import EngFlag
 from utils.config import console
 from utils.tools import get_join_pardir
 
-
 class OcrEngine:
     """OCR引擎，含各种操作的方法"""
 
