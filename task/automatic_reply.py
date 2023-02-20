@@ -9,6 +9,8 @@
 # @Description  : 自动回复、聊天机器人
 --------------------
 """
+import time
+
 from ocr.orc_engine import OCRe
 from utils.tools import *
 
@@ -21,8 +23,11 @@ if __name__ == '__main__':
     OCRe.start()
     window_top('微信', True)
 
-    location = pyautogui.locateCenterOnScreen(get_join_pardir('doc\\setting\\we_chat_flag.png'), confidence=0.8, region=Config.get('WindowRect'))
+    location = pyautogui.locateCenterOnScreen(get_join_pardir('doc\\setting\\we_chat_flag.png'), confidence=0.8,
+                                              region=Config.get('WindowRect'))
 
     we_chat_record_screenshot()
     text = OCRe.run(get_join_pardir(Config.get("screenshotSavePath")))
-    print(text)
+    get_we_chat_talk_name()
+    test = OCRe.run(get_join_pardir("doc\\talk.png"))
+    print(test)

@@ -135,7 +135,6 @@ OCRe = OcrEngine()
 
 
 
-
 if __name__ == '__main__':
     OCRe.start()
     text = OCRe.run("E:\\fxbsuajy@gmail.com\\Window-Sprite\\doc\\screen.png")

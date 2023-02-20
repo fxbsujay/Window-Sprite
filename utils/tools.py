@@ -10,8 +10,10 @@
 --------------------
 """
 import os
+import re
 import time
 import pyautogui
+import pytesseract
 import win32con, win32gui, win32clipboard
 from PIL import ImageGrab
 from utils.config import Config
@@ -98,6 +100,7 @@ def window_top(name: str, isSaveWindowRect: bool = False):
         :name:  窗口名称
         :return 窗口句柄
     """
+
     def callback(hwnd, extra):
         if win32gui.IsWindowVisible(hwnd):
             if win32gui.GetWindowText(hwnd) == name:
@@ -144,7 +147,7 @@ def read_file(path):
         file.close()
 
 
-def we_chat_record_screenshot():
+def we_chat_record_screenshot(region: tuple = None):
     """
         微信聊天记录截屏
     """
@@ -152,12 +155,49 @@ def we_chat_record_screenshot():
     if handle == 0:
         return
 
-    x1, y1, x2, y2 = Config.get('WindowRect')
-    locationLeft = pyautogui.locateCenterOnScreen(get_join_pardir("doc\\setting\\we_chat_left_bottom.png"), confidence=0.8, region=(x1, y1, x2, y2))
-    locationRight = pyautogui.locateCenterOnScreen(get_join_pardir("doc\\setting\\we_chat_right_bottom.png"), confidence=0.8, region=(x1, y1, x2, y2))
+    if region is None:
+        region = Config.get('WindowRect')
+
+    x1, y1, x2, y2 = region
+
+    locationLeft = pyautogui.locateCenterOnScreen(get_join_pardir("doc\\setting\\we_chat_left_bottom.png"),
+                                                  confidence=0.8, region=region)
+    locationRight = pyautogui.locateCenterOnScreen(get_join_pardir("doc\\setting\\we_chat_right_bottom.png"),
+                                                   confidence=0.8, region=region)
     png = ImageGrab.grab((locationLeft.x, y1 + 60, locationRight.x, locationLeft.y - 20))
     png.save(get_join_pardir(Config.get("screenshotSavePath")))
 
 
+def get_we_chat_talk_name(region: tuple = None):
+    """
+        微信聊天对象人名
+    """
+    handle = window_top('微信', True)
+    if handle == 0:
+        return
+
+    if region is None:
+        region = Config.get('WindowRect')
+
+    x1, y1, x2, y2 = region
+
+    png = ImageGrab.grab((x1 + 320, y1, x1 + 620, y1 + 60))
+    png.save(get_join_pardir("doc\\talk.png"))
+    png.close()
+
+
+def is_valid_date(timeStr):
+    """
+        判断是不是日期类型
+    """
+    flag = True
+    try:
+        time.strptime(timeStr, "%Y年%m月%d日%H:%M")
+    except ValueError:
+        flag = True if (re.match("^(([0-1]\d)|(2[0-4])):[0-5]\d$", timeStr)) is not None else False
+    finally:
+        return flag
+
+
 if __name__ == '__main__':
-    pass
+    print(is_valid_date('13:29'))
