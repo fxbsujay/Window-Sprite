@@ -131,9 +131,7 @@ class OcrAPI:
             imgPath = imgPath[:-1]
 
         try:
-            print(imgPath)
             getStr = self.ret.stdout.readline().decode('utf-8', errors='ignore')
-            print('----------------------')
         except Exception as e:
             return {'code': 401, 'data': f'读取识别器进程输出值失败，疑似传入了不存在或无法识别的图片 \"{imgPath}\" 。{e}'}
         try:

@@ -6,10 +6,10 @@
 # @Author       : fxbsujay@gmail.com
 # @Time         : 11:12 2023/2/07
 # @Version      : 1.0.0
-# @Description  : 自动化脚本
+# @Description  : 窗口自动化脚本 适用于 win11、win10
 --------------------
 """
-
+from threading import Thread
 from typing import List
 from rich.table import Table
 from ocr.orc_engine import OCRe
@@ -124,11 +124,16 @@ def inspect_sheet(filename: str) -> List[Script]:
     return jsonData
 
 
-class ExecuteScript:
+class WindowScript:
 
-    def __init__(self, scriptType: ScriptType = ScriptType.json, loop: bool = True, isBanPhrases: bool = True):
-        self._phrases = []
+    def __init__(self, scriptType: ScriptType = ScriptType.json, loop: bool = True):
+        """
+            :param scriptType 脚本文件类型
+            :loop  是否循环执行
+        """
         self._loop = loop
+        self._talk = None
+        self._talkFlag = False
 
         if Config.get('taskScriptType'):
             scriptType = Config.get('taskScriptType')
@@ -138,36 +143,37 @@ class ExecuteScript:
         if Config.get('ocrProcessStatus') == EngFlag.none:
             OCRe.start()
 
-        if isBanPhrases:
-            self.filter_phrases()
-
-    def filter_phrases(self):
-        path = get_join_pardir(Config.get("banPhraseFilePath"))
-        if path:
-            content = read_file(path)
-            if content:
-                self._phrases = content.split(',')
 
     def start(self) -> None:
         path = Config.get('taskScriptPath')[self._script.value]['path']
         filename = get_join_pardir(path)
 
-        scriptData: List[Script] = []
+        self._talkFlag = True
+        scripts: List[Script] = inspect_sheet(filename) if self._script == ScriptType.excel else inspect_json(filename)
 
-        if self._script == ScriptType.excel:
-            scriptData = inspect_sheet(filename)
-        elif self._script == ScriptType.json:
-            scriptData = inspect_json(filename)
+        def execute_talk():
+            if not self._talkFlag:
+                return
+            if scripts and self._loop:
+                while True:
+                    self.execute_script(scripts)
+            else:
+                self.execute_script(scripts)
 
-        if scriptData and self._loop:
-            while True:
-                self.execute_script(scriptData, self._phrases)
-        else:
-            self.execute_script(scriptData, self._phrases)
+        if self._talk is None:
+            self._talk = Thread(target=execute_talk, name="WindowScriptTalk")
+            self._talk.daemon = True
+
+        self._talk.start()
+
+
+    def stop(self):
+        if self._talkFlag:
+            self._talkFlag = False
 
 
     @staticmethod
-    def execute_script(dataList: List[Script], banPhrases: []) -> None:
+    def execute_script(dataList: List[Script]) -> None:
         console.rule("start execute script")
         for script in dataList:
             if script.type == 1 or script.type == 2:
@@ -192,8 +198,8 @@ class ExecuteScript:
                 time.sleep(int(script.value))
 
 
-
 if __name__ == '__main__':
     # inspect_json("[ { \"type\": 1, \"value\": \"flag.png\", \"reset\": 0} ]")
-    execute = ExecuteScript()
+    execute = WindowScript()
     execute.start()
+
