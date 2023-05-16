@@ -5,7 +5,6 @@ from threading import Thread
 from utils.config import Config
 from utils.config import console
 from utils.enums import PurposeType, EngFlag
-import time
 
 
 class FileSearchEngine(ttk.Frame):
@@ -60,21 +59,12 @@ class FileSearchEngine(ttk.Frame):
         )
         self.textbox.pack(fill=X, expand=YES, pady=15)
         default_txt = "Click the browse button to open a new text file."
-        self.textbox.insert(END, default_txt)
+        self.textbox.insert(1.0, default_txt)
 
-        t = Thread(target=self.open_log)
-        t.daemon = True
-        t.start()
+    def console(self, msg: str):
+        self.textbox.insert(END, '\n' + msg)
 
-    def open_log(self):
-        while True:
-            with open('log.txt', encoding='utf-8') as f:
-                self.textbox.delete('1.0', END)
-                self.textbox.insert(END, f.readlines())
-                time.sleep(1)
-                console.print('22222')
-                f.close()
-
+    # 开始按钮
     def status_bnt_click_handle(self):
 
         if self._statusChangeHandle:
@@ -98,7 +88,7 @@ def start():
 if __name__ == '__main__':
     app = ttk.Window("File Search Engine")
 
-    console.print('aaaa')
     engine = FileSearchEngine(app, start)
+    engine.console("SEL_LAST")
     app.mainloop()
 
