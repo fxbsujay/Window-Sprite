@@ -9,10 +9,10 @@
 # @Description  : 微信自动回复、聊天机器人 微信版本 3.9
 --------------------
 """
-import time
-from typing import List
 
+import time
 import uiautomation
+from typing import List
 
 
 class WeChat:

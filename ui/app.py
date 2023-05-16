@@ -3,6 +3,7 @@ from ttkbootstrap.constants import *
 from tkinter.scrolledtext import ScrolledText
 from threading import Thread
 from utils.config import Config
+from utils.config import console
 from utils.enums import PurposeType, EngFlag
 import time
 
@@ -48,6 +49,7 @@ class FileSearchEngine(ttk.Frame):
         )
         status_btn.pack(side=LEFT, padx=5)
 
+    # 日志显示框
     def create_log_row(self):
         style = ttk.Style()
         self.textbox = ScrolledText(
@@ -64,13 +66,13 @@ class FileSearchEngine(ttk.Frame):
         t.daemon = True
         t.start()
 
-
     def open_log(self):
         while True:
             with open('log.txt', encoding='utf-8') as f:
                 self.textbox.delete('1.0', END)
-                self.textbox.insert(END, f.read())
+                self.textbox.insert(END, f.readlines())
                 time.sleep(1)
+                console.print('22222')
                 f.close()
 
     def status_bnt_click_handle(self):
@@ -96,6 +98,7 @@ def start():
 if __name__ == '__main__':
     app = ttk.Window("File Search Engine")
 
+    console.print('aaaa')
     engine = FileSearchEngine(app, start)
-
     app.mainloop()
+

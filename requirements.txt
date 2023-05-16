@@ -5,3 +5,5 @@ psutil==5.9.4
 pillow==9.4.0
 rich==13.3.1
 pywin32==305
+ttkbootstrap~=1.10.1
+uiautomation~=2.0.17
