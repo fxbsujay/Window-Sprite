@@ -11,6 +11,7 @@
 """
 import json
 
+
 from ocr.orc_engine import OCRe
 from utils.tools import *
 

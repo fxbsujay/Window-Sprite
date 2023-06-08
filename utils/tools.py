@@ -13,7 +13,6 @@ import os
 import re
 import time
 import pyautogui
-import pytesseract
 import win32con, win32gui, win32clipboard
 from PIL import ImageGrab
 from utils.config import Config

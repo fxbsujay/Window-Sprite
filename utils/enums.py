@@ -13,6 +13,27 @@
 from enum import Enum
 
 
+class WxMessageHeights(Enum):
+    """
+        微信消息高度类型
+            sys     系统提示消息
+            time    消息发送时间提示
+            recall  消息撤回
+    """
+    sys = 33
+    time = 34
+    recall = 117
+
+
+class WxMessageType(Enum):
+    """发送的消息类型"""
+    file = '[文件]'
+    image = '[图片]'
+    video = '[视频]'
+    music = '[音乐]'
+    link = '[链接]'
+
+
 class ScriptType(Enum):
     json = 'json'
     excel = 'excel'

@@ -1,7 +1,6 @@
 # 自动化办公 解放双手
 
 ---
-- pip install pytesseract   (图像识别库)
 - pip install pyinstaller   (打包程序)
 - pip install opencv-python -i https://pypi.tuna.tsinghua.edu.cn/simple  
 ```
@@ -10,3 +9,4 @@
 找到 pytesseract.py文件的第28行改为以下路径 
 tesseract_cmd = 'tesseract的安装路径\\tesseract\\tesseract'
 ```
+

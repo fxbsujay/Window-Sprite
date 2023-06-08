@@ -12,7 +12,39 @@
 
 import time
 import uiautomation
+from utils.enums import WxMessageHeights
 from typing import List
+
+
+class WxMessage:
+    """
+      Message Model
+    """
+
+    def __init__(self, user: str, text: str, runtimeId: str):
+        """
+        :param user:        消息发送方
+        :param text:        消息内容
+        :param runtimeId:   消息Id
+        """
+        self._user = user
+        self._text = text
+        self._runtimeId = runtimeId
+
+    @property
+    def user(self):
+        return self._user
+
+    @property
+    def text(self):
+        return self._text
+
+    @property
+    def runtimeId(self):
+        return self._runtimeId
+
+    def __str__(self):
+        return 'type={},text={},runtimeId={}'.format(self._user, self._text, self._runtimeId)
 
 
 class WeChat:
@@ -22,8 +54,9 @@ class WeChat:
         self.sessions = self.controller.ListControl(Name='会话')
         self.searchBox = self.controller.EditControl(Name='搜索')
         self.messages = self.controller.ListControl(Name='消息')
+        self.messageInputBox = self.controller.EditControl(Name="输入")
         self.sessionNameList: List[str] = []
-
+        self.controller.SetTopmost(True)
 
     def refresh_sessions(self, reset: bool = False) -> List[str]:
         """
@@ -49,8 +82,7 @@ class WeChat:
 
         return sessionNameList
 
-
-    def open_session(self, name: str, scrollTimes: int = 10) -> bool:
+    def open_session(self, name: str, scrollTimes: int = 3) -> bool:
         """
             打开某个会话
             :param name         会话窗口名称
@@ -84,7 +116,6 @@ class WeChat:
         self.search_session(name)
         return scroll_to()
 
-
     def search_session(self, name: str):
         """
             搜索某个会话
@@ -96,21 +127,61 @@ class WeChat:
         self.searchBox.SendKeys(name, waitTime=1.5)
         self.searchBox.SendKeys('{Enter}')
 
-
     def load_more_message(self, index=0.1):
         """
-            加载当前会话的所有历史消息记录到内存
-            :param index 消息向上滚动次数 默认 50
+            消息加载更多
+            :param index 消息向上滚动次数
         """
         index = 0.1 if index < 0.1 else 1 if index > 1 else index
         self.messages.WheelUp(wheelTimes=int(500 * index), waitTime=0.1)
 
+    def get_all_message(self) -> List[WxMessage]:
+        """
+            查询所有的消息
+        """
+        messageList: List[WxMessage] = []
+        for item in self.messages.GetChildren():
+            rectangleHeight = item.BoundingRectangle.height()
+            text = item.Name
+            runtimeId = ''.join([str(i) for i in item.GetRuntimeId()])
+
+            if rectangleHeight not in [member.value for member in WxMessageHeights]:
+                Index = 1
+                uiautomation.SetGlobalSearchTimeout(0)
+                user = item.ButtonControl(foundIndex=Index)
+
+                try:
+                    while True:
+                        if user.Name == '':
+                            Index += 1
+                            user = item.ButtonControl(foundIndex=Index)
+                        else:
+                            break
+                    messageList.append(WxMessage(user.Name, text, runtimeId))
+                except LookupError:
+                    print('未找到发送人')
+                uiautomation.SetGlobalSearchTimeout(10)
+        return messageList
+
+    def send_message(self, message: str, clear: bool = True):
+        """
+            向当前开发的微信窗口发送消息
+            message: 消息内容
+            clear:   是否清空已编辑的内容
+        """
+
+        self.controller.SwitchToThisWindow()
+        if clear:
+            self.messageInputBox.SendKeys('{Ctrl}a', waitTime=0)
+        self.messageInputBox.SendKeys(message, waitTime=0)
+        self.messageInputBox.SendKeys('{Enter}', waitTime=0)
 
 
 if __name__ == '__main__':
     w = WeChat()
     w.refresh_sessions()
-    a = w.open_session('企业微信')
-    print(a)
-    a = w.open_session('文件传输助手')
-    print(a)
+    w.open_session("文件传输助手")
+    messages = w.get_all_message()
+    for msg in messages:
+        print(str(msg))
+    w.send_message("你好")
