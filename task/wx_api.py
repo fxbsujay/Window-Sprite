@@ -6,7 +6,7 @@
 # @Author       : fxbsujay@gmail.com
 # @Time         : 11:12 2023/2/24
 # @Version      : 1.0.0
-# @Description  : 微信自动回复、聊天机器人 微信版本 3.9
+# @Description  : 微信自动化工具，微信版本 3.9.x  仅支持 windows
 --------------------
 """
 
@@ -15,7 +15,7 @@ import uiautomation
 from utils.enums import WxMessageHeights
 from typing import List
 from uiautomation import Control
-import win32clipboard, win32com.client as win32client
+import win32clipboard
 import os
 
 
@@ -120,7 +120,6 @@ class WeChat:
         sessionItem = self.sessions.ListItemControl()
 
         while sessionItem:
-
             name = sessionItem.Name
             if name not in self.sessionNameList:
                 self.sessionNameList.append(name)
@@ -250,10 +249,5 @@ class WeChat:
 
 if __name__ == '__main__':
     w = WeChat()
+    print(w.sessions.GetFirstChildControl().Name)
     w.refresh_sessions()
-    messages = w.get_all_message()
-    for msg in messages:
-        print(str(msg))
-    w.open_session("文件传输助手")
-    w.send_message("你好")
-    w.send_file("E:\\fxbsuajy@gmail.com\Window-Sprite\doc\script.xls", "E:\\fxbsuajy@gmail.com\Window-Sprite\doc\\talk.png")
