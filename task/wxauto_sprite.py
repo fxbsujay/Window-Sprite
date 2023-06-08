@@ -14,6 +14,8 @@ import time
 import uiautomation
 from utils.enums import WxMessageHeights
 from typing import List
+import win32con, win32gui, win32clipboard
+import os
 
 
 class WxMessage:
@@ -177,11 +179,38 @@ class WeChat:
         self.messageInputBox.SendKeys('{Enter}', waitTime=0)
 
 
+    def send_file(self, *filepath: str):
+        """向当前聊天窗口发送文件
+              not_exists: 如果未找到指定文件，继续或终止程序
+              *filepath: 要复制文件的绝对路径"""
+        key = ''
+        for file in filepath:
+            file = os.path.realpath(file)
+            key += '<EditElement type="3" filepath="%s" shortcut="" />' % file
+        if not key:
+            return 0
+
+        copyDict = {
+            '49949': b'<WeChatRichEditFormat><EditElement type="0"><![CDATA[ ]]></EditElement></WeChatRichEditFormat>\x00',
+            '49950': b'<RTXRichEditFormat><EditElement type="0"><![CDATA[ ]]></EditElement></RTXRichEditFormat>\x00',
+            '49951': b'<QQRichEditFormat><EditElement type="0"><![CDATA[ ]]></EditElement></QQRichEditFormat>\x00'
+        }
+
+        win32clipboard.OpenClipboard()
+        win32clipboard.EmptyClipboard()
+        win32clipboard.SetClipboardData(13, '')
+        win32clipboard.SetClipboardData(16, b'\x04\x08\x00\x00')
+        win32clipboard.SetClipboardData(1, b'')
+        win32clipboard.SetClipboardData(7, b'')
+        for i in copyDict:
+            copyData = copyDict[i].replace(b'<EditElement type="0"><![CDATA[ ]]>', key.encode()).replace(b'type="0"', b'type="3"')
+            win32clipboard.SetClipboardData(int(i), copyData)
+        win32clipboard.CloseClipboard()
+        self.send_message('{Ctrl}v')
+
+
 if __name__ == '__main__':
     w = WeChat()
     w.refresh_sessions()
-    w.open_session("文件传输助手")
-    messages = w.get_all_message()
-    for msg in messages:
-        print(str(msg))
-    w.send_message("你好")
+
+    w.send_file("E:\\fxbsuajy@gmail.com\Window-Sprite\doc\script.xls","E:\\fxbsuajy@gmail.com\Window-Sprite\doc\\talk.png")
