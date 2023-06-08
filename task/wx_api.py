@@ -14,7 +14,8 @@ import time
 import uiautomation
 from utils.enums import WxMessageHeights
 from typing import List
-import win32clipboard
+from uiautomation import Control
+import win32clipboard, win32com.client as win32client
 import os
 
 
@@ -46,7 +47,53 @@ class WxMessage:
         return self._runtimeId
 
     def __str__(self):
-        return 'type={},text={},runtimeId={}'.format(self._user, self._text, self._runtimeId)
+        return 'user={},text={},runtimeId={}'.format(self._user, self._text, self._runtimeId)
+
+
+def clipboard_formats(unit=0, *units):
+    units = list(units)
+    win32clipboard.OpenClipboard()
+    u = win32clipboard.EnumClipboardFormats(unit)
+    win32clipboard.CloseClipboard()
+    units.append(u)
+    if u:
+        units = clipboard_formats(u, *units)
+    return units
+
+
+def copy_dict() -> dict:
+    copyDict = {}
+    for i in clipboard_formats():
+        if i == 0:
+            continue
+        win32clipboard.OpenClipboard()
+        try:
+            content = win32clipboard.GetClipboardData(i)
+            win32clipboard.CloseClipboard()
+        except:
+            win32clipboard.CloseClipboard()
+            raise ValueError
+        if len(str(i)) >= 4:
+            copyDict[str(i)] = content
+    return copyDict
+
+
+def split_message(message: Control) -> WxMessage:
+    Index = 1
+    uiautomation.SetGlobalSearchTimeout(0)
+    user = message.ButtonControl(foundIndex=Index)
+    try:
+        while True:
+            if user.Name == '':
+                Index += 1
+                user = message.ButtonControl(foundIndex=Index)
+            else:
+                break
+        return WxMessage(user.Name, message.Name, ''.join([str(i) for i in message.GetRuntimeId()]))
+    except LookupError:
+        print('未找到发送人')
+    finally:
+        uiautomation.SetGlobalSearchTimeout(10)
 
 
 class WeChat:
@@ -144,26 +191,17 @@ class WeChat:
         messageList: List[WxMessage] = []
         for item in self.messages.GetChildren():
             rectangleHeight = item.BoundingRectangle.height()
-            text = item.Name
-            runtimeId = ''.join([str(i) for i in item.GetRuntimeId()])
-
             if rectangleHeight not in [member.value for member in WxMessageHeights]:
-                Index = 1
-                uiautomation.SetGlobalSearchTimeout(0)
-                user = item.ButtonControl(foundIndex=Index)
-
-                try:
-                    while True:
-                        if user.Name == '':
-                            Index += 1
-                            user = item.ButtonControl(foundIndex=Index)
-                        else:
-                            break
-                    messageList.append(WxMessage(user.Name, text, runtimeId))
-                except LookupError:
-                    print('未找到发送人')
-                uiautomation.SetGlobalSearchTimeout(10)
+                messageList.append(split_message(item))
         return messageList
+
+
+    def get_last_message(self):
+        """
+            获取最后一条消息
+        """
+        message = self.messages.GetChildren()[-1]
+        return split_message(message)
 
     def send_message(self, message: str, clear: bool = True):
         """
