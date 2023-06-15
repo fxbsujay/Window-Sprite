@@ -106,6 +106,7 @@ class WeChat:
         self.messageInputBox = self.controller.EditControl(Name="输入")
         self.sessionNameList: List[str] = []
         self.controller.SetTopmost(True)
+        uiautomation.SetGlobalSearchTimeout(0)
 
     def refresh_sessions(self, reset: bool = False) -> List[str]:
         """
@@ -121,6 +122,10 @@ class WeChat:
 
         while sessionItem:
             name = sessionItem.Name
+            print(name)
+            if "条新消息" in name:
+                name = sessionItem.ButtonControl().Name
+
             if name not in self.sessionNameList:
                 self.sessionNameList.append(name)
 
@@ -153,9 +158,14 @@ class WeChat:
                     else:
                         self.sessions.WheelDown(wheelTimes=5, waitTime=0.1 * i)
                 else:
-                    time.sleep(0.5)
-                    self.sessions.ListItemControl(Name=name).Click(simulateMove=False)
-                    return True
+                    try:
+                        self.sessions.ListItemControl(Name=name).Click(simulateMove=False)
+                        return True
+                    except LookupError:
+                        for item in self.sessions.GetChildren():
+                            if name == item.ButtonControl().Name:
+                                item.ButtonControl().Click(simulateMove=False)
+                                return True
             return False
 
         if scroll_to():
@@ -163,6 +173,19 @@ class WeChat:
 
         self.search_session(name)
         return scroll_to()
+
+    def get_unread_messages_number(self, name: str) -> int:
+        """
+            获取微信用户发来的未读消息数量
+            :param name 会话名称
+        """
+        sessionItem = self.sessions.ListItemControl()
+
+        while sessionItem:
+            if name == sessionItem.ButtonControl().Name:
+                return int(sessionItem.PaneControl().GetChildren()[-1].Name)
+            sessionItem = sessionItem.GetNextSiblingControl()
+        return 0
 
     def search_session(self, name: str):
         """
@@ -194,7 +217,6 @@ class WeChat:
                 messageList.append(split_message(item))
         return messageList
 
-
     def get_last_message(self):
         """
             获取最后一条消息
@@ -215,11 +237,12 @@ class WeChat:
         self.messageInputBox.SendKeys(message, waitTime=0)
         self.messageInputBox.SendKeys('{Enter}', waitTime=0)
 
-
     def send_file(self, *filepath: str):
-        """向当前聊天窗口发送文件
-              not_exists: 如果未找到指定文件，继续或终止程序
-              *filepath: 要复制文件的绝对路径"""
+        """
+            向当前聊天窗口发送文件
+            not_exists: 如果未找到指定文件，继续或终止程序
+            *filepath: 要复制文件的绝对路径
+        """
         key = ''
         for file in filepath:
             file = os.path.realpath(file)
@@ -241,7 +264,8 @@ class WeChat:
         win32clipboard.SetClipboardData(win32clipboard.CF_TEXT, b'')
         win32clipboard.SetClipboardData(win32clipboard.CF_OEMTEXT, b'')
         for i in copyDict:
-            copyData = copyDict[i].replace(b'<EditElement type="0"><![CDATA[ ]]>', key.encode()).replace(b'type="0"', b'type="3"')
+            copyData = copyDict[i].replace(b'<EditElement type="0"><![CDATA[ ]]>', key.encode()).replace(b'type="0"',
+                                                                                                         b'type="3"')
             win32clipboard.SetClipboardData(int(i), copyData)
         win32clipboard.CloseClipboard()
         self.send_message('{Ctrl}v')
@@ -249,5 +273,4 @@ class WeChat:
 
 if __name__ == '__main__':
     w = WeChat()
-    print(w.sessions.GetFirstChildControl().Name)
-    w.refresh_sessions()
+    print(w.get_unread_messages_number("小号"))
