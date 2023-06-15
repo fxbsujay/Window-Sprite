@@ -79,21 +79,24 @@ def copy_dict() -> dict:
 
 
 def split_message(message: Control) -> WxMessage:
-    Index = 1
-    uiautomation.SetGlobalSearchTimeout(0)
-    user = message.ButtonControl(foundIndex=Index)
+    index = 1
+    user = message.ButtonControl(foundIndex=index).Name
+    text = message.Name
+    runtimeId = ''.join([str(i) for i in message.GetRuntimeId()])
+
+    if len(user):
+        return WxMessage(user, text, runtimeId)
+
     try:
         while True:
-            if user.Name == '':
-                Index += 1
-                user = message.ButtonControl(foundIndex=Index)
+            if message.ButtonControl(foundIndex=index).Name == '':
+                index += 1
+                user = message.ButtonControl(foundIndex=index).Name
             else:
                 break
-        return WxMessage(user.Name, message.Name, ''.join([str(i) for i in message.GetRuntimeId()]))
+        return WxMessage(user, text, runtimeId)
     except LookupError:
-        print('未找到发送人')
-    finally:
-        uiautomation.SetGlobalSearchTimeout(10)
+        return WxMessage("未知发送人", text, runtimeId)
 
 
 class WeChat:
@@ -122,7 +125,6 @@ class WeChat:
 
         while sessionItem:
             name = sessionItem.Name
-            print(name)
             if "条新消息" in name:
                 name = sessionItem.ButtonControl().Name
 
@@ -162,9 +164,9 @@ class WeChat:
                         self.sessions.ListItemControl(Name=name).Click(simulateMove=False)
                         return True
                     except LookupError:
-                        for item in self.sessions.GetChildren():
-                            if name == item.ButtonControl().Name:
-                                item.ButtonControl().Click(simulateMove=False)
+                        for children in self.sessions.GetChildren():
+                            if name == children.ButtonControl().Name:
+                                children.ButtonControl().Click(simulateMove=False)
                                 return True
             return False
 
@@ -182,7 +184,7 @@ class WeChat:
         sessionItem = self.sessions.ListItemControl()
 
         while sessionItem:
-            if name == sessionItem.ButtonControl().Name:
+            if name == sessionItem.ButtonControl().Name and sessionItem.PaneControl().GetChildren()[-1].Name:
                 return int(sessionItem.PaneControl().GetChildren()[-1].Name)
             sessionItem = sessionItem.GetNextSiblingControl()
         return 0
@@ -211,10 +213,10 @@ class WeChat:
             查询所有的消息
         """
         messageList: List[WxMessage] = []
-        for item in self.messages.GetChildren():
-            rectangleHeight = item.BoundingRectangle.height()
+        for children in self.messages.GetChildren():
+            rectangleHeight = children.BoundingRectangle.height()
             if rectangleHeight not in [member.value for member in WxMessageHeights]:
-                messageList.append(split_message(item))
+                messageList.append(split_message(children))
         return messageList
 
     def get_last_message(self):
@@ -273,4 +275,5 @@ class WeChat:
 
 if __name__ == '__main__':
     w = WeChat()
-    print(w.get_unread_messages_number("小号"))
+    for item in w.get_all_message():
+        print(item.user)
