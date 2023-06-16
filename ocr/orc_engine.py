@@ -7,7 +7,13 @@
 # @Time         : 10:44 2023/2/09
 # @Version      : 1.0.0
 # @Description  : Image OCR Engine
---------------------
+
+                  pip install opencv-python -i https://pypi.tuna.tsinghua.edu.cn/simple
+
+                  安装 doc文件夹内的 tesseract.exe
+                  将 chi_sim 文件放入 tesseract的安装路径\\tesseract\\tesseract内
+                  找到 pytesseract.py文件的第28行改为以下路径
+                  tesseract_cmd = 'tesseract的安装路径\\tesseract\\tesseract'
 """
 
 import os
@@ -28,12 +34,10 @@ class OcrEngine:
         self.ocr = None  # OCR API对象
         self.engFlag = EngFlag.none
 
-
     def __initVar(self):
         self.__ocrInfo = ()  # 记录之前的OCR参数
         self.__ramTips = ''  # 内存占用提示
         self.ocr = None  # OCR API对象
-
 
     def __setEngFlag(self, engFlag):
         """更新引擎状态"""
@@ -44,9 +48,7 @@ class OcrEngine:
             if engFlag == EngFlag.waiting:
                 self.__ramTips = f'（内存：{self.ocr.getRam()}）'
 
-
         Config.update('ocrProcessStatus', engFlag)
-
 
     def start(self):
         """启动引擎。若引擎已启动，且参数有更新，则重启。"""
@@ -92,10 +94,9 @@ class OcrEngine:
                 return
             # 通知待命
             self.__setEngFlag(EngFlag.waiting)
-        except Exception as e:
+        except Exception:
             self.stop()
             raise
-
 
     def stop(self, isRestart: bool = False):
         """立刻终止引擎。isRE为T时表示这是在重启"""
@@ -134,13 +135,8 @@ class OcrEngine:
 
 OCRe = OcrEngine()
 
-
-
 if __name__ == '__main__':
     OCRe.start()
     text = OCRe.run("E:\\fxbsuajy@gmail.com\\Window-Sprite\\doc\\screen.png")
     console.print(text)
     OCRe.stop()
-
-
-
