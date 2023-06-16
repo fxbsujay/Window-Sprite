@@ -245,7 +245,7 @@ class WeChat:
 
     def send_message(self, message: str, clear: bool = True):
         """
-            向当前开发的微信窗口发送消息
+            向当前聊天窗口发送文消息
             message: 消息内容
             clear:   是否清空已编辑的内容
         """
