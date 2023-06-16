@@ -6,7 +6,7 @@
 # @Author       : fxbsujay@gmail.com
 # @Time         : 11:12 2023/2/24
 # @Version      : 1.0.0
-# @Description  : 微信自动化工具，微信版本 3.9.x  仅支持 windows
+# @Description  : 微信自动化工具，微信版本 3.9.5.81  仅支持 windows
 --------------------
 """
 
@@ -106,7 +106,7 @@ class WeChat:
         self.sessions = self.controller.ListControl(Name='会话')
         self.searchBox = self.controller.EditControl(Name='搜索')
         self.messages = self.controller.ListControl(Name='消息')
-        self.messageInputBox = self.controller.EditControl(Name="输入")
+        self.messageInputBox = self.controller.TextControl()
         self.sessionNameList: List[str] = []
         self.controller.SetTopmost(True)
         uiautomation.SetGlobalSearchTimeout(0)
@@ -189,6 +189,23 @@ class WeChat:
             sessionItem = sessionItem.GetNextSiblingControl()
         return 0
 
+
+    def get_unread_message_users(self) -> dict:
+        """
+            获取所有有未读消息的用户
+        """
+        usernames = {}
+        self.controller.ButtonControl(Name="聊天").DoubleClick(simulateMove=False)
+        sessionItem = self.sessions.ListItemControl()
+
+        while sessionItem:
+            name = sessionItem.Name
+            if "条新消息" in name:
+                usernames[sessionItem.ButtonControl().Name] = int(sessionItem.PaneControl().GetChildren()[-1].Name)
+            sessionItem = sessionItem.GetNextSiblingControl()
+        return usernames
+
+
     def search_session(self, name: str):
         """
             搜索某个会话
@@ -232,7 +249,6 @@ class WeChat:
             message: 消息内容
             clear:   是否清空已编辑的内容
         """
-
         self.controller.SwitchToThisWindow()
         if clear:
             self.messageInputBox.SendKeys('{Ctrl}a', waitTime=0)
@@ -275,5 +291,5 @@ class WeChat:
 
 if __name__ == '__main__':
     w = WeChat()
-    for item in w.get_all_message():
-        print(item.user)
+    print(w.get_unread_message_users())
+    print(w.get_all_message())

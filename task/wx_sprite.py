@@ -15,8 +15,8 @@ from task.wx_api import WeChat
 
 class WxMessageLoadInfo:
     """
-         Message Model
-       """
+        Message Model
+    """
 
     def __init__(self, user: str, lastRuntimeId: str):
         """
@@ -40,9 +40,21 @@ class WxMessageLoadInfo:
 
 class WxSprite:
 
-
     def __init__(self, users: List[str]):
         self._wxApi = WeChat()
+        self._wxMessageLoadList: List[WxMessageLoadInfo] = []
+        print(users)
+
+    def task(self):
+        unreadMessageUsers = self._wxApi.get_unread_message_users()
+        if bool(unreadMessageUsers):
+            for name in unreadMessageUsers:
+                if self._wxApi.open_session(name):
+                    messages = self._wxApi.get_all_message()
+                    for item in messages[len(messages) - unreadMessageUsers[name]:]:
+                        print(item.text)
 
 
-
+if __name__ == '__main__':
+    w = WxSprite([])
+    w.task()
