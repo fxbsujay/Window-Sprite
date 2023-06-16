@@ -1,10 +1,10 @@
 # 微信客户端自动化
 
-|  环境  |                             版本                             |
-| :----: | :----------------------------------------------------------: |
-|   OS   | [![Windows](https://img.shields.io/badge/Windows-10-white?logo=windows&logoColor=white)](https://www.microsoft.com/) |
+|  环境  |                                                                                                 版本                                                                                                  |
+| :----: |:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
+|   OS   |                                        [![Windows](https://img.shields.io/badge/Windows-11-white?logo=windows&logoColor=white)](https://www.microsoft.com/)                                         |
 |  微信  | [![Wechat](https://img.shields.io/badge/%E5%BE%AE%E4%BF%A1-3.9.5.81-07c160?logo=wechat&logoColor=white)](https://weixin.qq.com/cgi-bin/readtemplate?ang=zh_CN&t=page/faq/win/335/index&faq=win_335) |
-| Python | [![Python](https://img.shields.io/badge/Python-3.81-blue?logo=python&logoColor=white)](https://www.python.org/) |
+| Python |                                           [![Python](https://img.shields.io/badge/Python-3.81-blue?logo=python&logoColor=white)](https://www.python.org/)                                           |
 
 已实现发送微信消息，发送文件，获取微信聊天记录等功能
 
