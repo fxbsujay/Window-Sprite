@@ -243,7 +243,7 @@ class WeChat:
         message = self.messages.GetChildren()[-1]
         return split_message(message)
 
-    def send_message(self, message: str, clear: bool = True):
+    def send_message(self, message: str, clear: bool = True, sendImmediately: bool = True):
         """
             向当前聊天窗口发送文消息
             message: 消息内容
@@ -253,9 +253,10 @@ class WeChat:
         if clear:
             self.messageInputBox.SendKeys('{Ctrl}a', waitTime=0)
         self.messageInputBox.SendKeys(message, waitTime=0)
-        self.messageInputBox.SendKeys('{Enter}', waitTime=0)
+        if sendImmediately:
+            self.messageInputBox.SendKeys('{Enter}', waitTime=0)
 
-    def send_file(self, *filepath: str):
+    def send_file(self, *filepath: str, sendImmediately: bool = True, clear: bool = True,):
         """
             向当前聊天窗口发送文件
             not_exists: 如果未找到指定文件，继续或终止程序
@@ -282,16 +283,40 @@ class WeChat:
         win32clipboard.SetClipboardData(win32clipboard.CF_TEXT, b'')
         win32clipboard.SetClipboardData(win32clipboard.CF_OEMTEXT, b'')
         for i in copyDict:
-            copyData = copyDict[i].replace(b'<EditElement type="0"><![CDATA[ ]]>', key.encode()).replace(b'type="0"',
-                                                                                                         b'type="3"')
+            copyData = copyDict[i].replace(b'<EditElement type="0"><![CDATA[ ]]>', key.encode()).replace(b'type="0"', b'type="3"')
             win32clipboard.SetClipboardData(int(i), copyData)
         win32clipboard.CloseClipboard()
-        self.send_message('{Ctrl}v')
+        self.send_message('{Ctrl}v', clear, sendImmediately)
 
 
 if __name__ == '__main__':
-    w = WeChat()
+    wx = WeChat()
 
-    message = w.get_all_message()
-    for item in message:
-        print(item.runtimeId)
+    # 获取当前微信窗口所展示的所有会话
+    for session in wx.refresh_sessions():
+        print(session)
+
+    # 打开聊天窗
+    wx.open_session("文件传输助手")
+
+    # 搜索某个会话
+    wx.search_session("文件传输助手")
+
+    # 获取所有有未读消息的用户
+    for unreadUser in wx.get_unread_message_users():
+        print(unreadUser)
+
+    # 查询所有当前窗口的聊天消息
+    for messages in wx.get_all_message():
+        print(str(messages))
+
+    # 获取最后一条消息
+    print(wx.get_last_message())
+
+    # 向当前聊天窗口发送文消息
+    wx.send_message("Hello World", sendImmediately=False)
+
+    # 向当前聊天窗口发送文件
+    wx.send_file("E:\\fxbsuajy@gmail.com\Window-Sprite\\README.md", clear=False, sendImmediately=False)
+
+    wx.send_message("Window-Sprite", clear=False)

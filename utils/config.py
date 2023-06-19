@@ -10,7 +10,6 @@
 --------------------
 """
 
-from rich.console import Console
 from utils.enums import EngFlag, ScriptType
 
 _ConfigDict = {
@@ -96,6 +95,4 @@ class ConfigModule:
         return self.__optDict[key]
 
 
-Config = ConfigModule()  # 设置模块 单例
-
-console = Console(file=open("log.txt", "wt", encoding='utf-8'))
+Config = ConfigModule()

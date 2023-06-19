@@ -13,33 +13,41 @@ import time
 import threading
 from typing import List
 from task.wx_api import WeChat
+import xlrd
+from utils.tools import get_join_pardir
 
 lock = threading.Lock()
 
 
-class WxMessageLoadInfo:
+def char_similarity(word, entry):
     """
-        Message Model
+        判断两个字符串的相似度
     """
+    hash_str = {}
+    for char in word:
+        hash_str[hash(char)] = char
 
-    def __init__(self, user: str, lastRuntimeId: str):
-        """
-        :param user:            消息发送方
-        :param lastRuntimeId:   最后一条消息Id
-        """
-        self._user = user
-        self._lastRuntimeId = lastRuntimeId
+    same_chars = []
+    for char in entry:
+        if hash(char) in hash_str and char not in same_chars:
+            same_chars.append(char)
 
-    @property
-    def user(self):
-        return self._user
+    return len(same_chars) / len(entry)
 
-    @property
-    def runtimeId(self):
-        return self._lastRuntimeId
 
-    def __str__(self):
-        return 'user={},lastRuntimeId={}'.format(self._user, self._lastRuntimeId)
+def load_entries(filename: str):
+    """
+        加载消息回复的词条
+    """
+    wb = xlrd.open_workbook(filename=filename)
+    sheet = wb.sheet_by_index(0)
+    print(sheet.nrows)
+    index = 0
+    while index < sheet.nrows:
+        print('-------')
+        row = sheet.row(index)
+        print(row)
+        index += 1
 
 
 class WxSprite:
@@ -76,7 +84,7 @@ class WxSprite:
 
     def monitor_unread_message(self):
         """
-            更新
+            更新监听信息
         """
         unreadMessageUsers = self._wxApi.get_unread_message_users()
         if bool(unreadMessageUsers):
@@ -93,7 +101,4 @@ class WxSprite:
 
 
 if __name__ == '__main__':
-    w = WxSprite([])
-    while True:
-        time.sleep(5)
-        w.message_handle()
+    load_entries(get_join_pardir("doc\\wx_entries.xls"))

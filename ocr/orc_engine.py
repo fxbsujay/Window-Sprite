@@ -21,7 +21,6 @@ from operator import eq
 from ocr.api_image_ocr import OcrAPI
 from utils.config import Config
 from utils.enums import EngFlag
-from utils.config import console
 from utils.tools import get_join_pardir
 
 
@@ -82,14 +81,14 @@ class OcrEngine:
 
         self.__ocrInfo = info
         try:
-            console.print('启动引擎，参数：{}', info)
+            print('启动引擎，参数：{}', info)
             self.__setEngFlag(EngFlag.initializing)
             # 启动引擎
             self.ocr = OcrAPI(*self.__ocrInfo)
             # 检查启动引擎这段时间里，引擎有没有被叫停
             if not self.engFlag == EngFlag.initializing:
                 # 状态被改变过了
-                console.print(f'初始化后，引擎被叫停！{self.engFlag}')
+                print(f'初始化后，引擎被叫停！{self.engFlag}')
                 self.stop()
                 return
             # 通知待命
@@ -103,7 +102,7 @@ class OcrEngine:
 
         if not self.engFlag == EngFlag.none and not isRestart:
             # TODO @CompilationTime 11:13 2023/02/09  --- 停止任务 ---
-            console.print(f'引擎stop，停止任务！')
+            print(f'引擎stop，停止任务！')
 
         if hasattr(self.ocr, 'stop'):
             self.ocr.stop()
@@ -138,5 +137,5 @@ OCRe = OcrEngine()
 if __name__ == '__main__':
     OCRe.start()
     text = OCRe.run("E:\\fxbsuajy@gmail.com\\Window-Sprite\\doc\\screen.png")
-    console.print(text)
+    print(text)
     OCRe.stop()

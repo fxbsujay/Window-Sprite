@@ -17,7 +17,6 @@ import subprocess
 from psutil import Process as psutilProcess  # 内存监控
 from sys import platform
 from json import loads, dumps
-from utils.config import console
 
 InitTimeout = 5  # 初始化超时时间，秒
 
@@ -97,7 +96,7 @@ class OcrAPI:
             if 'OCR init completed.' in initStr:  # 初始化成功
                 break
         cancelTimeout()
-        console.print(f'初始化OCR成功，进程号为{self.ret.pid}')
+        print(f'初始化OCR成功，进程号为{self.ret.pid}')
 
     def run(self, imgPath: str) -> dict:
         """
@@ -150,7 +149,7 @@ class OcrAPI:
         try:
             return f'{int(self.psutilProcess.memory_info().rss / 1048576)}MB'
         except Exception as e:
-            console.print(f'获取子进程内存失败：{e}')
+            print(f'获取子进程内存失败：{e}')
             return '无法获取'
 
     def __del__(self):

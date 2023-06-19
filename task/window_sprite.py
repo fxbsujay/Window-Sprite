@@ -11,7 +11,6 @@
 """
 from threading import Thread
 from typing import List
-from rich.table import Table
 from ocr.orc_engine import OCRe
 from utils.enums import EngFlag, ScriptType
 from utils.tools import *
@@ -21,23 +20,6 @@ import json
 import pyautogui
 import time
 import os
-
-
-def print_json_table(func):
-    def _func(params: str):
-        table = Table(show_header=True, header_style="bold magenta")
-        table.add_column("TYPE", style="dim")
-        table.add_column("VALUE")
-        table.add_column("RESET")
-        console.rule("start scanning script")
-        json_data = func(params)
-        for item in json_data:
-            table.add_row(str(item.type), str(item.value), str(item.reset))
-
-        console.print(table)
-        return json_data
-
-    return _func
 
 
 class Script:
@@ -70,7 +52,6 @@ class Script:
         return 'type={},value={},reset={}'.format(self._type, self._value, self._reset)
 
 
-@print_json_table
 def inspect_json(filename: str) -> List[Script]:
     """
     :param filename: json脚本文件
@@ -79,14 +60,12 @@ def inspect_json(filename: str) -> List[Script]:
     jsonStr = read_file(filename)
     jsonData: List[Script] = []
     if len(jsonStr) > 0:
-        console.print_json(jsonStr)
         dataList = json.loads(jsonStr)
         for item in dataList:
             jsonData.append(Script(item['type'], item['value'], item['reset']))
     return jsonData
 
 
-@print_json_table
 def inspect_sheet(filename: str) -> List[Script]:
     """
         检测脚本并返回
@@ -174,7 +153,7 @@ class WindowScript:
 
     @staticmethod
     def execute_script(dataList: List[Script]) -> None:
-        console.rule("start execute script")
+        print("start execute script")
         for script in dataList:
             if script.type == 1 or script.type == 2:
                 reset = 1
