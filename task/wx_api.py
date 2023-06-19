@@ -291,5 +291,7 @@ class WeChat:
 
 if __name__ == '__main__':
     w = WeChat()
-    print(w.get_unread_message_users())
-    print(w.get_all_message())
+
+    message = w.get_all_message()
+    for item in message:
+        print(item.runtimeId)

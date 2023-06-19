@@ -9,8 +9,12 @@
 # @Description  : 微信自动回复、聊天机器人 微信版本 3.9
 --------------------
 """
+import time
+import threading
 from typing import List
 from task.wx_api import WeChat
+
+lock = threading.Lock()
 
 
 class WxMessageLoadInfo:
@@ -42,19 +46,54 @@ class WxSprite:
 
     def __init__(self, users: List[str]):
         self._wxApi = WeChat()
-        self._wxMessageLoadList: List[WxMessageLoadInfo] = []
-        print(users)
+        self._wxMessageLoadList: dict = {}
+        task = threading.Thread(target=self.monitor_task)
+        task.setDaemon(True)
+        task.start()
 
-    def task(self):
+    def message_handle(self):
+        """
+            处理消息
+        """
+        if bool(self._wxMessageLoadList):
+            for name in self._wxMessageLoadList:
+                if self._wxMessageLoadList[name]:
+                    self._wxApi.open_session(name)
+                    messages = self._wxApi.get_all_message()
+                    for item in messages[len(messages) - self._wxMessageLoadList[name]:]:
+                        # 搜索字库 回复消息
+                        print(item.text)
+                        self.set_unread_message(name, self._wxMessageLoadList[name] - 1)
+            self._wxApi.open_session("文件传输助手")
+
+    def set_unread_message(self, name: str, number: int):
+        """
+            更新未读消息数
+        """
+        lock.acquire()
+        self._wxMessageLoadList[name] = number
+        lock.release()
+
+    def monitor_unread_message(self):
+        """
+            更新
+        """
         unreadMessageUsers = self._wxApi.get_unread_message_users()
         if bool(unreadMessageUsers):
             for name in unreadMessageUsers:
-                if self._wxApi.open_session(name):
-                    messages = self._wxApi.get_all_message()
-                    for item in messages[len(messages) - unreadMessageUsers[name]:]:
-                        print(item.text)
+                self.set_unread_message(name, unreadMessageUsers[name])
+
+    def monitor_task(self):
+        """
+            实时监听新消息
+        """
+        while True:
+            time.sleep(5)
+            self.monitor_unread_message()
 
 
 if __name__ == '__main__':
     w = WxSprite([])
-    w.task()
+    while True:
+        time.sleep(5)
+        w.message_handle()
