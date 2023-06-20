@@ -118,7 +118,6 @@ def get_join_pardir(path: str):
     return os.path.join(os.path.abspath('..'), path)
 
 
-
 def read_file(path):
     if not os.path.isfile(path):
         raise Exception("文件地址错误 {}", path)
@@ -128,3 +127,7 @@ def read_file(path):
         return file.read()  # 结果为str类型
     finally:
         file.close()
+
+
+def is_file(filename):
+    return "\\" in filename and os.path.isfile(filename)
